@@ -8,7 +8,7 @@ based on user queries. Features weather, math, and knowledge search capabilities
 import os
 from typing import Annotated, Sequence, TypedDict
 from dotenv import load_dotenv
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
@@ -38,7 +38,7 @@ def calculate_math(expression: str) -> str:
     try:
         result = eval(expression)
         return f"The result of {expression} is {result}"
-    except:
+    except Exception:
         return "Unable to calculate that expression."
 
 
@@ -158,5 +158,6 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
 
 

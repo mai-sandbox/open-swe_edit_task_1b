@@ -73,6 +73,15 @@ def agent_node(state: AgentState):
         "iteration_count": new_iteration
     }
 
+def should_continue(state: AgentState):
+    """
+    Routing function that determines whether to use tools or end the conversation.
+    """
+    messages = state["messages"]
+    last_message = messages[-1]
+    # Check if the last message has tool calls
+    return "tools" if hasattr(last_message, 'tool_calls') and last_message.tool_calls else "end"
+
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
@@ -147,3 +156,4 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+

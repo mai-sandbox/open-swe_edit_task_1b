@@ -8,7 +8,7 @@ based on user queries. Features weather, math, and knowledge search capabilities
 import os
 from typing import Annotated, Sequence, TypedDict
 from dotenv import load_dotenv
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
@@ -38,7 +38,7 @@ def calculate_math(expression: str) -> str:
     try:
         result = eval(expression)
         return f"The result of {expression} is {result}"
-    except:
+    except Exception:
         return "Unable to calculate that expression."
 
 
@@ -60,7 +60,7 @@ def agent_node(state: AgentState):
         You have access to weather, math, and knowledge search tools.
         Use tools when needed, but provide direct answers for simple questions.
         Keep responses concise and helpful.""")
-        messages = [system_msg] + messages
+        messages = [system_msg] + list(messages)
     
     # Get model response
     response = model.invoke(messages)
@@ -72,6 +72,15 @@ def agent_node(state: AgentState):
         "messages": [response],
         "iteration_count": new_iteration
     }
+
+def should_continue(state: AgentState):
+    """
+    Routing function that determines whether to use tools or end the conversation.
+    """
+    messages = state["messages"]
+    last_message = messages[-1]
+    # Check if the last message has tool calls
+    return "tools" if hasattr(last_message, 'tool_calls') and last_message.tool_calls else "end"
 
 def create_agent():
     """
@@ -87,7 +96,9 @@ def create_agent():
     # Add basic edges
     workflow.add_edge(START, "agent")
     workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
+    
+    # Add conditional routing from agent
+    workflow.add_conditional_edges("agent", should_continue, {"tools": "tools", "end": END})
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()
@@ -147,3 +158,8 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
+
+
+
+

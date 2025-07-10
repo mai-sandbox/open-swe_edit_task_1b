@@ -60,7 +60,7 @@ def agent_node(state: AgentState):
         You have access to weather, math, and knowledge search tools.
         Use tools when needed, but provide direct answers for simple questions.
         Keep responses concise and helpful.""")
-        messages = [system_msg] + messages
+        messages = [system_msg] + list(messages)
     
     # Get model response
     response = model.invoke(messages)
@@ -158,6 +158,7 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
 
 
 

@@ -15,7 +15,7 @@ from langchain_tavily import TavilySearch
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import ToolNode, tools_condition
 
 # Load environment variables
 load_dotenv()
@@ -84,10 +84,14 @@ def create_agent():
     workflow.add_node("agent", agent_node)
     workflow.add_node("tools", tool_node)
     
-    # Add basic edges
+    # Add edges
     workflow.add_edge(START, "agent")
+    
+    # Add conditional routing: check if agent response has tool_calls
+    workflow.add_conditional_edges("agent", tools_condition)
+    
+    # After tools execute, return to agent for final response
     workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()
@@ -97,12 +101,12 @@ def create_agent():
     
     return app
 
-app = create_agent()
+compiled_graph = create_agent()
 
 def test_agent():
     """Test the agent with various query types."""
     
-    agent = app
+    agent = compiled_graph
     
     test_cases = [
         "What's the weather in New York?",

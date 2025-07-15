@@ -107,7 +107,7 @@ compiled_graph = create_agent()
 def test_agent():
     """Test the agent with various query types."""
     
-    agent = app
+    agent = compiled_graph
     
     test_cases = [
         "What's the weather in New York?",
@@ -152,3 +152,4 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+

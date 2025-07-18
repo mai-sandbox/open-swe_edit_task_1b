@@ -73,6 +73,18 @@ def agent_node(state: AgentState):
         "iteration_count": new_iteration
     }
 
+def should_continue(state: AgentState):
+    """
+    Determine whether to continue to tools or end the conversation.
+    """
+    messages = state["messages"]
+    last_message = messages[-1]
+    
+    # If the last message has tool calls, route to tools
+    if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+        return "tools"
+    return "end"
+
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
@@ -87,7 +99,9 @@ def create_agent():
     # Add basic edges
     workflow.add_edge(START, "agent")
     workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
+    
+    # Add conditional routing from agent
+    workflow.add_conditional_edges("agent", should_continue, {"tools": "tools", "end": END})
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()
@@ -98,6 +112,9 @@ def create_agent():
     return app
 
 app = create_agent()
+
+# Export compiled graph for evaluation
+compiled_graph = app
 
 def test_agent():
     """Test the agent with various query types."""

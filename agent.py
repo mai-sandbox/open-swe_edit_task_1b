@@ -61,9 +61,9 @@ def create_agent():
     workflow.add_node("tools", tool_node)
     
     # Add basic edges
-    workflow.add_edge(START, "agent")
-    workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
+    workflow.add_edge(START, "call_model")
+    workflow.add_edge("tools", "call_model")
+    workflow.add_edge("call_model", END)
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()

@@ -41,7 +41,7 @@ tools = [get_weather, calculate_math, web_search]
 tool_node = ToolNode(tools)
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
 
-def agent_node(state: MessagesState):
+def call_model(state: MessagesState):
     """
     Call the model with bound tools to generate responses.
     """

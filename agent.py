@@ -15,7 +15,7 @@ from langchain_tavily import TavilySearch
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import ToolNode, tools_condition
 
 # Load environment variables
 load_dotenv()
@@ -42,41 +42,49 @@ def calculate_math(expression: str) -> str:
         return "Unable to calculate that expression."
 
 
-web_search = TavilySearch(max_results=3)
-tools = [get_weather, calculate_math, web_search]
-tool_node = ToolNode(tools)
-model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
-
 def agent_node(state: AgentState):
     """
     Main agent node that processes user input and decides on actions.
     """
-    messages = state["messages"]
-    iteration_count = state.get("iteration_count", 0)
-    
-    # Add system message for first iteration
-    if iteration_count == 0:
-        system_msg = SystemMessage(content="""You are a helpful assistant. 
-        You have access to weather, math, and knowledge search tools.
-        Use tools when needed, but provide direct answers for simple questions.
-        Keep responses concise and helpful.""")
-        messages = [system_msg] + messages
-    
-    # Get model response
-    response = model.invoke(messages)
-    
-    # Update iteration count
-    new_iteration = iteration_count + 1
-    
-    return {
-        "messages": [response],
-        "iteration_count": new_iteration
-    }
+    # This will be defined inside create_agent()
+    pass
 
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
     """
+    # Initialize tools and model inside the function
+    web_search = TavilySearch(max_results=3)
+    tools = [get_weather, calculate_math, web_search]
+    tool_node = ToolNode(tools)
+    model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
+    
+    def agent_node(state: AgentState):
+        """
+        Main agent node that processes user input and decides on actions.
+        """
+        messages = state["messages"]
+        iteration_count = state.get("iteration_count", 0)
+        
+        # Add system message for first iteration
+        if iteration_count == 0:
+            system_msg = SystemMessage(content="""You are a helpful assistant. 
+            You have access to weather, math, and knowledge search tools.
+            Use tools when needed, but provide direct answers for simple questions.
+            Keep responses concise and helpful.""")
+            messages = [system_msg] + messages
+        
+        # Get model response
+        response = model.invoke(messages)
+        
+        # Update iteration count
+        new_iteration = iteration_count + 1
+        
+        return {
+            "messages": [response],
+            "iteration_count": new_iteration
+        }
+    
     # Create the workflow
     workflow = StateGraph(AgentState)
     
@@ -87,7 +95,16 @@ def create_agent():
     # Add basic edges
     workflow.add_edge(START, "agent")
     workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
+    
+    # Add conditional routing from agent
+    workflow.add_conditional_edges(
+        "agent",
+        tools_condition,
+        {
+            "tools": "tools",
+            "__end__": END
+        }
+    )
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()
@@ -97,12 +114,10 @@ def create_agent():
     
     return app
 
-app = create_agent()
-
 def test_agent():
     """Test the agent with various query types."""
     
-    agent = app
+    agent = create_agent()
     
     test_cases = [
         "What's the weather in New York?",
@@ -147,3 +162,6 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
+
+

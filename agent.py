@@ -114,12 +114,10 @@ def create_agent():
     
     return app
 
-app = create_agent()
-
 def test_agent():
     """Test the agent with various query types."""
     
-    agent = app
+    agent = create_agent()
     
     test_cases = [
         "What's the weather in New York?",

@@ -92,6 +92,10 @@ def create_agent():
     workflow.add_conditional_edges(
         "agent",
         tools_condition,
+        {
+            "tools": "tools",
+            "__end__": END
+        }
     )
     
     # Add memory checkpointer

@@ -46,10 +46,9 @@ def agent_node(state: MessagesState):
     Main agent node that processes user input and decides on actions.
     """
     messages = state["messages"]
-    iteration_count = state.get("iteration_count", 0)
     
-    # Add system message for first iteration
-    if iteration_count == 0:
+    # Add system message if not already present
+    if not messages or not isinstance(messages[0], SystemMessage):
         system_msg = SystemMessage(content="""You are a helpful assistant. 
         You have access to weather, math, and knowledge search tools.
         Use tools when needed, but provide direct answers for simple questions.
@@ -59,13 +58,7 @@ def agent_node(state: MessagesState):
     # Get model response
     response = model.invoke(messages)
     
-    # Update iteration count
-    new_iteration = iteration_count + 1
-    
-    return {
-        "messages": [response],
-        "iteration_count": new_iteration
-    }
+    return {"messages": [response]}
 
 def create_agent():
     """

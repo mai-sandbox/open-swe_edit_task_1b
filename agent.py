@@ -107,13 +107,6 @@ def create_agent():
     
     return app
 
-def agent_node(state: AgentState):
-    """
-    Main agent node that processes user input and decides on actions.
-    """
-    messages = state["messages"]
-    iteration_count = state.get("iteration_count", 0)
-    
 app = create_agent()
 
 def test_agent():
@@ -164,4 +157,5 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
 

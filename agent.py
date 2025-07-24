@@ -49,6 +49,16 @@ def call_model(state: MessagesState):
     response = model.invoke(messages)
     return {"messages": [response]}
 
+def should_continue(state: MessagesState):
+    """
+    Determine whether to continue to tools or end the conversation.
+    """
+    messages = state["messages"]
+    last_message = messages[-1]
+    if last_message.tool_calls:
+        return "tools"
+    return END
+
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
@@ -121,5 +131,6 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
 
 

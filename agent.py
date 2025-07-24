@@ -85,6 +85,9 @@ def create_agent():
 
 app = create_agent()
 
+# Export compiled graph for evaluation
+compiled_graph = app
+
 def test_agent():
     """Test the agent with various query types."""
     

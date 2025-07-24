@@ -73,7 +73,7 @@ def create_agent():
     # Add basic edges
     workflow.add_edge(START, "call_model")
     workflow.add_edge("tools", "call_model")
-    workflow.add_edge("call_model", END)
+    workflow.add_conditional_edges("call_model", should_continue, ["tools", END])
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()

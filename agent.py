@@ -43,21 +43,10 @@ model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
 
 def agent_node(state: MessagesState):
     """
-    Main agent node that processes user input and decides on actions.
+    Call the model with bound tools to generate responses.
     """
     messages = state["messages"]
-    
-    # Add system message if not already present
-    if not messages or not isinstance(messages[0], SystemMessage):
-        system_msg = SystemMessage(content="""You are a helpful assistant. 
-        You have access to weather, math, and knowledge search tools.
-        Use tools when needed, but provide direct answers for simple questions.
-        Keep responses concise and helpful.""")
-        messages = [system_msg] + messages
-    
-    # Get model response
     response = model.invoke(messages)
-    
     return {"messages": [response]}
 
 def create_agent():
@@ -132,4 +121,5 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
 

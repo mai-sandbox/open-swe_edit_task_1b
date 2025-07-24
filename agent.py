@@ -42,11 +42,6 @@ def calculate_math(expression: str) -> str:
         return "Unable to calculate that expression."
 
 
-web_search = TavilySearch(max_results=3)
-tools = [get_weather, calculate_math, web_search]
-tool_node = ToolNode(tools)
-model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
-
 def agent_node(state: AgentState):
     """
     Main agent node that processes user input and decides on actions.
@@ -77,6 +72,12 @@ def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
     """
+    # Initialize tools and model inside the function
+    web_search = TavilySearch(max_results=3)
+    tools = [get_weather, calculate_math, web_search]
+    tool_node = ToolNode(tools)
+    model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
+    
     # Create the workflow
     workflow = StateGraph(AgentState)
     
@@ -106,6 +107,13 @@ def create_agent():
     
     return app
 
+def agent_node(state: AgentState):
+    """
+    Main agent node that processes user input and decides on actions.
+    """
+    messages = state["messages"]
+    iteration_count = state.get("iteration_count", 0)
+    
 app = create_agent()
 
 def test_agent():
@@ -156,3 +164,4 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+

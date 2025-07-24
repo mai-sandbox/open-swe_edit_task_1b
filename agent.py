@@ -12,19 +12,13 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, System
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import StateGraph, START, END, MessagesState
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import ToolNode
 
 # Load environment variables
 load_dotenv()
-
-# Define the agent state
-class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], add_messages]
-    iteration_count: int
-    user_intent: str
 
 # Define tools
 @tool
@@ -47,47 +41,39 @@ tools = [get_weather, calculate_math, web_search]
 tool_node = ToolNode(tools)
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
 
-def agent_node(state: AgentState):
+def call_model(state: MessagesState):
     """
-    Main agent node that processes user input and decides on actions.
+    Call the model with bound tools to generate responses.
     """
     messages = state["messages"]
-    iteration_count = state.get("iteration_count", 0)
-    
-    # Add system message for first iteration
-    if iteration_count == 0:
-        system_msg = SystemMessage(content="""You are a helpful assistant. 
-        You have access to weather, math, and knowledge search tools.
-        Use tools when needed, but provide direct answers for simple questions.
-        Keep responses concise and helpful.""")
-        messages = [system_msg] + messages
-    
-    # Get model response
     response = model.invoke(messages)
-    
-    # Update iteration count
-    new_iteration = iteration_count + 1
-    
-    return {
-        "messages": [response],
-        "iteration_count": new_iteration
-    }
+    return {"messages": [response]}
+
+def should_continue(state: MessagesState):
+    """
+    Determine whether to continue to tools or end the conversation.
+    """
+    messages = state["messages"]
+    last_message = messages[-1]
+    if last_message.tool_calls:
+        return "tools"
+    return END
 
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
     """
     # Create the workflow
-    workflow = StateGraph(AgentState)
+    workflow = StateGraph(MessagesState)
     
     # Add nodes
-    workflow.add_node("agent", agent_node)
+    workflow.add_node("call_model", call_model)
     workflow.add_node("tools", tool_node)
     
     # Add basic edges
-    workflow.add_edge(START, "agent")
-    workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
+    workflow.add_edge(START, "call_model")
+    workflow.add_edge("tools", "call_model")
+    workflow.add_conditional_edges("call_model", should_continue, ["tools", END])
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()
@@ -98,6 +84,9 @@ def create_agent():
     return app
 
 app = create_agent()
+
+# Export compiled graph for evaluation
+compiled_graph = app
 
 def test_agent():
     """Test the agent with various query types."""
@@ -123,9 +112,7 @@ def test_agent():
         try:
             result = agent.invoke(
                 {
-                    "messages": [HumanMessage(content=query)],
-                    "iteration_count": 0,
-                    "user_intent": ""
+                    "messages": [HumanMessage(content=query)]
                 },
                 config
             )
@@ -147,3 +134,6 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
+
+

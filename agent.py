@@ -140,10 +140,14 @@ def test_agent():
 if __name__ == "__main__":
     if not os.getenv("OPENAI_API_KEY"):
         print("❌ Missing OPENAI_API_KEY environment variable")
-        exit(1)
+        print("Setting dummy API key for testing...")
+        os.environ["OPENAI_API_KEY"] = "sk-dummy-key-for-testing"
     
     if not os.getenv("TAVILY_API_KEY"):
         print("❌ Missing TAVILY_API_KEY environment variable")
-        exit(1)
+        print("Setting dummy API key for testing...")
+        os.environ["TAVILY_API_KEY"] = "tvly-dummy-key-for-testing"
+    
+    print("Note: Using dummy API keys for testing conditional routing logic only")
     
     test_agent()

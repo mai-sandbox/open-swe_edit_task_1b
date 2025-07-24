@@ -8,11 +8,11 @@ based on user queries. Features weather, math, and knowledge search capabilities
 import os
 from typing import Annotated, Sequence, TypedDict
 from dotenv import load_dotenv
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -38,7 +38,7 @@ def calculate_math(expression: str) -> str:
     try:
         result = eval(expression)
         return f"The result of {expression} is {result}"
-    except:
+    except Exception:
         return "Unable to calculate that expression."
 
 
@@ -151,3 +151,4 @@ if __name__ == "__main__":
     print("Note: Using dummy API keys for testing conditional routing logic only")
     
     test_agent()
+

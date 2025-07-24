@@ -46,27 +46,8 @@ def agent_node(state: AgentState):
     """
     Main agent node that processes user input and decides on actions.
     """
-    messages = state["messages"]
-    iteration_count = state.get("iteration_count", 0)
-    
-    # Add system message for first iteration
-    if iteration_count == 0:
-        system_msg = SystemMessage(content="""You are a helpful assistant. 
-        You have access to weather, math, and knowledge search tools.
-        Use tools when needed, but provide direct answers for simple questions.
-        Keep responses concise and helpful.""")
-        messages = [system_msg] + messages
-    
-    # Get model response
-    response = model.invoke(messages)
-    
-    # Update iteration count
-    new_iteration = iteration_count + 1
-    
-    return {
-        "messages": [response],
-        "iteration_count": new_iteration
-    }
+    # This will be defined inside create_agent()
+    pass
 
 def create_agent():
     """
@@ -77,6 +58,32 @@ def create_agent():
     tools = [get_weather, calculate_math, web_search]
     tool_node = ToolNode(tools)
     model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
+    
+    def agent_node(state: AgentState):
+        """
+        Main agent node that processes user input and decides on actions.
+        """
+        messages = state["messages"]
+        iteration_count = state.get("iteration_count", 0)
+        
+        # Add system message for first iteration
+        if iteration_count == 0:
+            system_msg = SystemMessage(content="""You are a helpful assistant. 
+            You have access to weather, math, and knowledge search tools.
+            Use tools when needed, but provide direct answers for simple questions.
+            Keep responses concise and helpful.""")
+            messages = [system_msg] + messages
+        
+        # Get model response
+        response = model.invoke(messages)
+        
+        # Update iteration count
+        new_iteration = iteration_count + 1
+        
+        return {
+            "messages": [response],
+            "iteration_count": new_iteration
+        }
     
     # Create the workflow
     workflow = StateGraph(AgentState)
@@ -157,5 +164,6 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
 
 

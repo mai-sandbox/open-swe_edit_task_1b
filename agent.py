@@ -110,9 +110,7 @@ def test_agent():
         try:
             result = agent.invoke(
                 {
-                    "messages": [HumanMessage(content=query)],
-                    "iteration_count": 0,
-                    "user_intent": ""
+                    "messages": [HumanMessage(content=query)]
                 },
                 config
             )
@@ -134,3 +132,4 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+

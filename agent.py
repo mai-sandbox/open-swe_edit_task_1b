@@ -57,7 +57,7 @@ def create_agent():
     workflow = StateGraph(MessagesState)
     
     # Add nodes
-    workflow.add_node("agent", agent_node)
+    workflow.add_node("call_model", call_model)
     workflow.add_node("tools", tool_node)
     
     # Add basic edges

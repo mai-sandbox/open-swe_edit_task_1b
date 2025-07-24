@@ -20,11 +20,11 @@ def test_conditional_routing():
     
     # Test that the agent can be created successfully
     try:
-        print("
+        print("\n✅ Agent created successfully")
         print(f"Agent type: {type(app)}")
         
         # Test a simple query to verify the graph structure
-        print("
+        print("\n🔍 Testing graph structure...")
         
         # Get the graph structure
         graph = app.get_graph()
@@ -38,10 +38,12 @@ def test_conditional_routing():
                 print(f"✅ Node '{node}' found in graph")
             else:
                 print(f"❌ Node '{node}' missing from graph")
-                
+        
     except Exception as e:
         print(f"❌ Error testing agent: {e}")
 
 if __name__ == "__main__":
     test_conditional_routing()
+
+
 

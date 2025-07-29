@@ -46,7 +46,7 @@ tools = [get_weather, calculate_math, web_search]
 tool_node = ToolNode(tools)
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
 
-def agent_node(state: AgentState):
+def agent_node(state: State):
     """
     Main agent node that processes user input and decides on actions.
     """
@@ -146,3 +146,4 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+

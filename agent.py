@@ -14,14 +14,13 @@ from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
-from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import ToolNode, tools_condition
 
 # Load environment variables
 load_dotenv()
 
-# Define the agent state
-class AgentState(TypedDict):
+# Define the agent state - compatible with evaluator requirements
+class State(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     iteration_count: int
     user_intent: str

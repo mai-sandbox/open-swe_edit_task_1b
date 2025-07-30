@@ -1,10 +1,8 @@
 """
 Decision-Making Agent Implementation
-
 A LangGraph agent that can use various tools and provide intelligent responses
 based on user queries. Features weather, math, and knowledge search capabilities.
 """
-
 import os
 from typing import Annotated, Sequence, TypedDict
 from dotenv import load_dotenv
@@ -15,22 +13,18 @@ from langchain_tavily import TavilySearch
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
-
 # Load environment variables
 load_dotenv()
-
 # Define the agent state - compatible with evaluator requirements
 class State(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
     iteration_count: int
     user_intent: str
-
 # Define tools
 @tool
 def get_weather(location: str) -> str:
     """Get current weather information for a location."""
     return f"The weather in {location} is sunny with 72°F temperature."
-
 @tool
 def calculate_math(expression: str) -> str:
     """Perform mathematical calculations."""
@@ -39,13 +33,10 @@ def calculate_math(expression: str) -> str:
         return f"The result of {expression} is {result}"
     except:
         return "Unable to calculate that expression."
-
-
 web_search = TavilySearch(max_results=3)
 tools = [get_weather, calculate_math, web_search]
 tool_node = ToolNode(tools)
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
-
 def agent_node(state: State):
     """
     Main agent node that processes user input and decides on actions.
@@ -71,7 +62,6 @@ def agent_node(state: State):
         "messages": [response],
         "iteration_count": new_iteration
     }
-
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
@@ -95,9 +85,7 @@ def create_agent():
     app = workflow.compile(checkpointer=checkpointer)
     
     return app
-
 app = create_agent()
-
 def test_agent():
     """Test the agent with various query types."""
     
@@ -135,7 +123,6 @@ def test_agent():
                 
         except Exception as e:
             print(f"❌ Error: {e}")
-
 if __name__ == "__main__":
     if not os.getenv("OPENAI_API_KEY"):
         print("❌ Missing OPENAI_API_KEY environment variable")
@@ -146,4 +133,3 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
-

@@ -44,15 +44,14 @@ tools = [get_weather, calculate_math, web_search]
 tool_node = ToolNode(tools)
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
 
-def agent_node(state: AgentState):
+def agent_node(state: State):
     """
     Main agent node that processes user input and decides on actions.
     """
     messages = state["messages"]
-    iteration_count = state.get("iteration_count", 0)
     
-    # Add system message for first iteration
-    if iteration_count == 0:
+    # Add system message if this is the first message or no system message exists
+    if not messages or not any(isinstance(msg, SystemMessage) for msg in messages):
         system_msg = SystemMessage(content="""You are a helpful assistant. 
         You have access to weather, math, and knowledge search tools.
         Use tools when needed, but provide direct answers for simple questions.
@@ -62,13 +61,22 @@ def agent_node(state: AgentState):
     # Get model response
     response = model.invoke(messages)
     
-    # Update iteration count
-    new_iteration = iteration_count + 1
-    
     return {
-        "messages": [response],
-        "iteration_count": new_iteration
+        "messages": [response]
     }
+
+def should_continue(state: State):
+    """
+    Conditional routing function that determines whether to continue to tools or end.
+    """
+    messages = state["messages"]
+    last_message = messages[-1]
+    
+    # Check if the last message has tool calls
+    if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+        return "tools"
+    else:
+        return END
 
 def create_agent():
     """
@@ -144,3 +152,4 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+

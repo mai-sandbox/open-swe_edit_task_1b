@@ -76,6 +76,20 @@ def agent_node(state: State):
         "user_intent": user_intent
     }
 
+def should_continue(state: State) -> Literal["tools", "end"]:
+    """
+    Conditional routing function that determines whether to use tools or end the conversation.
+    Returns 'tools' if the last message contains tool calls, 'end' otherwise.
+    """
+    messages = state["messages"]
+    last_message = messages[-1]
+    
+    # Check if the last message has tool calls
+    if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+        return "tools"
+    else:
+        return "end"
+
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
@@ -150,5 +164,6 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
 
 

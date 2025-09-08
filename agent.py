@@ -78,31 +78,29 @@ def should_continue(state: State):
     else:
         return END
 
-def create_agent():
-    """
-    Creates an intelligent agent with tool capabilities.
-    """
-    # Create the workflow
-    workflow = StateGraph(AgentState)
-    
-    # Add nodes
-    workflow.add_node("agent", agent_node)
-    workflow.add_node("tools", tool_node)
-    
-    # Add basic edges
-    workflow.add_edge(START, "agent")
-    workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
-    
-    # Add memory checkpointer
-    checkpointer = InMemorySaver()
-    
-    # Compile the graph
-    app = workflow.compile(checkpointer=checkpointer)
-    
-    return app
+# Create the workflow
+workflow = StateGraph(State)
 
-app = create_agent()
+# Add nodes
+workflow.add_node("agent", agent_node)
+workflow.add_node("tools", tool_node)
+
+# Add edges
+workflow.add_edge(START, "agent")
+workflow.add_edge("tools", "agent")
+
+# Add conditional edge for routing
+workflow.add_conditional_edges(
+    "agent",
+    should_continue,
+    {
+        "tools": "tools",
+        END: END
+    }
+)
+
+# Compile the graph
+app = workflow.compile()
 
 def test_agent():
     """Test the agent with various query types."""
@@ -152,4 +150,5 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
 

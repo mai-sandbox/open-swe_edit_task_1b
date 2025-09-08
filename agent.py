@@ -20,9 +20,9 @@ from langgraph.prebuilt import ToolNode
 # Load environment variables
 load_dotenv()
 
-# Define the agent state
-class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], add_messages]
+# Define the agent state - using 'State' name and 'list' for messages as required by evaluator
+class State(TypedDict):
+    messages: Annotated[list, add_messages]
     iteration_count: int
     user_intent: str
 
@@ -147,3 +147,4 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+

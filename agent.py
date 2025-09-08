@@ -47,12 +47,14 @@ tools = [get_weather, calculate_math, web_search]
 tool_node = ToolNode(tools)
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
 
-def agent_node(state: AgentState):
+def agent_node(state: State):
     """
     Main agent node that processes user input and decides on actions.
     """
     messages = state["messages"]
+    # Handle default values since evaluator only provides messages
     iteration_count = state.get("iteration_count", 0)
+    user_intent = state.get("user_intent", "")
     
     # Add system message for first iteration
     if iteration_count == 0:
@@ -70,7 +72,8 @@ def agent_node(state: AgentState):
     
     return {
         "messages": [response],
-        "iteration_count": new_iteration
+        "iteration_count": new_iteration,
+        "user_intent": user_intent
     }
 
 def create_agent():
@@ -147,4 +150,5 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
 

@@ -95,16 +95,25 @@ def create_agent():
     Creates an intelligent agent with tool capabilities.
     """
     # Create the workflow
-    workflow = StateGraph(AgentState)
+    workflow = StateGraph(State)
     
     # Add nodes
     workflow.add_node("agent", agent_node)
     workflow.add_node("tools", tool_node)
     
-    # Add basic edges
+    # Add edges
     workflow.add_edge(START, "agent")
     workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
+    
+    # Add conditional routing from agent
+    workflow.add_conditional_edges(
+        "agent",
+        should_continue,
+        {
+            "tools": "tools",
+            "end": END
+        }
+    )
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()
@@ -164,6 +173,7 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
 
 
 

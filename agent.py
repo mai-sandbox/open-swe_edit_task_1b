@@ -22,7 +22,7 @@ load_dotenv()
 
 # Define the agent state
 class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], add_messages]
+    messages: Annotated[list, add_messages]
     iteration_count: int
     user_intent: str
 
@@ -147,3 +147,4 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+

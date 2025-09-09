@@ -6,7 +6,7 @@ based on user queries. Features weather, math, and knowledge search capabilities
 """
 
 import os
-from typing import Annotated, Sequence, TypedDict
+from typing import Annotated, TypedDict
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langchain_core.tools import tool
@@ -22,7 +22,7 @@ load_dotenv()
 
 # Define the agent state
 class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], add_messages]
+    messages: Annotated[list, add_messages]
     iteration_count: int
     user_intent: str
 
@@ -73,6 +73,13 @@ def agent_node(state: AgentState):
         "iteration_count": new_iteration
     }
 
+def should_continue(state):
+    """
+    Conditional routing function that determines whether to use tools or end the conversation.
+    """
+    last_message = state['messages'][-1]
+    return 'tools' if hasattr(last_message, 'tool_calls') and last_message.tool_calls else END
+
 def create_agent():
     """
     Creates an intelligent agent with tool capabilities.
@@ -87,7 +94,7 @@ def create_agent():
     # Add basic edges
     workflow.add_edge(START, "agent")
     workflow.add_edge("tools", "agent")
-    workflow.add_edge("agent", END)
+    workflow.add_conditional_edges("agent", should_continue)
     
     # Add memory checkpointer
     checkpointer = InMemorySaver()
@@ -99,51 +106,3 @@ def create_agent():
 
 app = create_agent()
 
-def test_agent():
-    """Test the agent with various query types."""
-    
-    agent = app
-    
-    test_cases = [
-        "What's the weather in New York?",
-        "Calculate 15 * 24", 
-        "What is Python programming language?",
-        "Hello, how are you?",
-    ]
-    
-    print("Testing Agent Implementation")
-    print("=" * 30)
-    
-    for i, query in enumerate(test_cases, 1):
-        print(f"\nTest {i}: {query}")
-        print("-" * 30)
-        
-        config = {"configurable": {"thread_id": f"test-{i}"}}
-        
-        try:
-            result = agent.invoke(
-                {
-                    "messages": [HumanMessage(content=query)],
-                    "iteration_count": 0,
-                    "user_intent": ""
-                },
-                config
-            )
-            
-            final_message = result["messages"][-1]
-            print(f"Response: {final_message.content[:150]}...")
-            print("✅ Agent executed successfully")
-                
-        except Exception as e:
-            print(f"❌ Error: {e}")
-
-if __name__ == "__main__":
-    if not os.getenv("OPENAI_API_KEY"):
-        print("❌ Missing OPENAI_API_KEY environment variable")
-        exit(1)
-    
-    if not os.getenv("TAVILY_API_KEY"):
-        print("❌ Missing TAVILY_API_KEY environment variable")
-        exit(1)
-    
-    test_agent()

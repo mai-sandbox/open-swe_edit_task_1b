@@ -6,7 +6,8 @@ based on user queries. Features weather, math, and knowledge search capabilities
 """
 
 import os
-from typing import Annotated, Sequence, TypedDict
+from typing import Annotated, Literal
+from typing_extensions import TypedDict
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langchain_core.tools import tool
@@ -14,15 +15,14 @@ from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
-from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import ToolNode
 
 # Load environment variables
 load_dotenv()
 
-# Define the agent state
-class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], add_messages]
+# Define the agent state - compatible with evaluator requirements
+class State(TypedDict):
+    messages: Annotated[list, add_messages]
     iteration_count: int
     user_intent: str
 

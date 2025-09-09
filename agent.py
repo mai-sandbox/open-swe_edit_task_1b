@@ -6,7 +6,7 @@ based on user queries. Features weather, math, and knowledge search capabilities
 """
 
 import os
-from typing import Annotated, Sequence, TypedDict
+from typing import Annotated, TypedDict
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langchain_core.tools import tool

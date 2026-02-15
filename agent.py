@@ -6,7 +6,8 @@ based on user queries. Features weather, math, and knowledge search capabilities
 """
 
 import os
-from typing import Annotated, Sequence, TypedDict
+from typing import Annotated, Literal
+from typing_extensions import TypedDict
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langchain_core.tools import tool
@@ -14,15 +15,14 @@ from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
-from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import ToolNode
 
 # Load environment variables
 load_dotenv()
 
-# Define the agent state
-class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], add_messages]
+# Define the agent state - compatible with evaluator requirements
+class State(TypedDict):
+    messages: Annotated[list, add_messages]
     iteration_count: int
     user_intent: str
 
@@ -47,7 +47,7 @@ tools = [get_weather, calculate_math, web_search]
 tool_node = ToolNode(tools)
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0).bind_tools(tools)
 
-def agent_node(state: AgentState):
+def agent_node(state: State):
     """
     Main agent node that processes user input and decides on actions.
     """
@@ -72,6 +72,19 @@ def agent_node(state: AgentState):
         "messages": [response],
         "iteration_count": new_iteration
     }
+
+def should_continue(state: State) -> Literal["tools", "__end__"]:
+    """
+    Conditional routing function that determines whether to use tools or end.
+    """
+    messages = state["messages"]
+    last_message = messages[-1]
+    
+    # Check if the last message has tool calls
+    if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+        return "tools"
+    else:
+        return "__end__"
 
 def create_agent():
     """
@@ -147,3 +160,4 @@ if __name__ == "__main__":
         exit(1)
     
     test_agent()
+
